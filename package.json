@@ -1,0 +1,20 @@
+{
+  "name": "bagofcraftinghuijiwikigadget",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gen.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel es3_compat.js -d out.js"
+  },
+  "author": "frto027",
+  "license": "CC BY-NA-SA",
+  "dependencies": {
+    "@babel/preset-env": "^7.16.4",
+    "@babel/traverse": "^7.16.3",
+    "babel": "^6.23.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.0"
+  }
+}
