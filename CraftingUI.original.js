@@ -454,6 +454,12 @@
             console.log("合成袋计算器未能成功加载，因为滚动按钮没有找到")
             return
         }
+        //重置按钮
+        let reset_btn = root.find('#crafting_reset_btn')
+        if(reset_btn.length == 0){
+            console.log("合成袋计算器未能成功加载，因为重置按钮没有找到")
+            return
+        }
         // 输出结果的道具图像
         let item_preview = root.find('#collectible_placeholder')
         if(item_preview.length == 0){
@@ -590,6 +596,17 @@
             calculate_seed()
             calculate()
             flush_ui()
+        })
+
+        reset_btn.on('click',function(){
+            items = [0,0,0,0,0,0,0,0]
+            output_ids = undefined
+            flush_ui()
+            crafting_item_candidate_list.slideUp()
+            current_display_items = ""
+            if(CancelRequest)
+                CancelRequest()
+            crafting_item_preview.slideUp()
         })
         calculate_seed()
 
