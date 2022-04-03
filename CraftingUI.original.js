@@ -221,11 +221,22 @@
     //input_array是长度为8的数组，表示配方，gameStartSeed是一个32位随机数字，需要用str2seed计算
     function get_result(input_array, gameStartSeed){
         let sorted_items = bucket_sort_list_toint64(input_array)
+        
+        let output = []
 
         //先过滤预先确定好的配方
         for(let i=0;i<recipe_predefine_list.length;i++){
-            if(recipe_predefine_list[i].input == sorted_items)
-                return [recipe_predefine_list[i].output]
+            if(recipe_predefine_list[i].input == sorted_items){
+                let item_config = GetItemConfig(recipe_predefine_list[i].output)
+                if(item_config != undefined){
+                    if(item_config.achievement_id == undefined || GetAchievementUnlocked(item_config.achievement_id)){
+                        return [recipe_predefine_list[i].output]
+                    }else{
+                        //继续下一个道具
+                        output.push(recipe_predefine_list[i].output)
+                    }
+                }
+            }
         }
     
         //然后是游戏中的算法,后面这段没必要看懂，因为是从游戏里抄出来的，总之它返回道具id
@@ -369,7 +380,6 @@
         let retry_count = 0
 
         let selected
-        let output = []
         while(true){
             currentSeed = RNG_Next(currentSeed,6)
             //use float instead!!!
