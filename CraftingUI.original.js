@@ -690,8 +690,7 @@
                     title:mw.config.get('wgPageName'), 
                     text:"{{Crafting/道具预览|"+id+"}}",
                     contentmodel:'wikitext',
-                    format:'json',
-                    _i:'day_'+Math.floor(((new Date().getTime()/1000/60/60)/24) - (4/24)/* 凌晨4点刷新缓存，避开午夜高峰期 */) // cache every day
+                    format:'json'
                 }).done(function(data){
                     if(canceled)
                         return
