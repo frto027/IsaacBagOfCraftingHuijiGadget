@@ -86,7 +86,7 @@ for item in items_metadata:
     if item.tag == 'item' :
         if prettyprint:
             output += "    "
-        output += item.attrib['id'] + ':{quality:' + item.attrib['quality'] 
+        output += item.attrib['id'] + ':{quality:' + (item.attrib['craftquality'] if 'craftquality' in item.attrib else item.attrib['quality'])
 
         if item.attrib['id'] in item_id_aid:
             output += ',achievement_id:'+item_id_aid[item.attrib['id']]
