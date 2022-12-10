@@ -155,8 +155,8 @@
     compressed = JSON.parse(compressed)
     let item_pool_data_compressed = compressed.item_pool_data_compressed
     for(let i=0;i<item_pool_data_compressed.length;i++){
-        item_pool = []
-        item_pool_compressed = item_pool_data_compressed[i]
+        let item_pool = []
+        let item_pool_compressed = item_pool_data_compressed[i]
         for(let weight in item_pool_compressed){
             for(let j=0;j<item_pool_compressed[weight].length;j++){
                 let id = item_pool_compressed[weight][j]
