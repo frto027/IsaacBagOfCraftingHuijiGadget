@@ -1,6 +1,6 @@
 //此脚本读取out/datas.js的数据，并转换后输出到out/compressed.json文件中
 
-var {item_pool_data, item_config_data} = require('./out/datas')
+var {item_pool_data, item_config_data, active_item_ids} = require('./out/datas')
 
 let item_pool_data_compressed = []
 let id_with_achievement = []
@@ -19,6 +19,16 @@ for(let i in item_pool_data){
 
 let item_config_data_compressed = {}
 
+let id_with_tags = {
+    "lazarusshared":[],
+    "nodaily":[],
+    "offensive":[],
+    "nolostbr":[],
+    "nokeeper":[],
+    "nogreed":[],
+    "nochallenge":[],
+    // "nocantrip":[],
+}
 for(let id in item_config_data){
     let quality = item_config_data[id].quality
     if(item_config_data_compressed[quality] == undefined)
@@ -27,14 +37,25 @@ for(let id in item_config_data){
 
     let aid = item_config_data[id].achievement_id
     if(aid && aid > 0){
-        id_with_achievement.push(id)
+        id_with_achievement.push(Number(id))
+    }
+
+    let tags_string = item_config_data[id].tags
+    if(tags_string){
+        for(let tag of tags_string.split(" ")){
+            if(id_with_tags[tag]){
+                id_with_tags[tag].push(Number(id))
+            }
+        }
     }
 }
 
 let compressed = JSON.stringify({
     item_pool_data_compressed:item_pool_data_compressed,
     item_config_data_compressed:item_config_data_compressed,
-    id_with_achievement:id_with_achievement
+    id_with_achievement:id_with_achievement,
+    id_with_tags:id_with_tags,
+    active_item_ids:active_item_ids,
 })
 
 require('fs').writeFileSync("out/compressed.json",compressed)

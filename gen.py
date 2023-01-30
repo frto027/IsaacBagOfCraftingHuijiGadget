@@ -60,6 +60,9 @@ for pool in itempool:
 output += "}\n"
 
 item_id_aid = {}
+
+active_item_ids = []
+
 with open(items, 'rb') as f:
     items = f.read().decode('utf8')
 items = ET.fromstring(items)
@@ -69,6 +72,8 @@ for item in items:
         if 'achievement' in item.attrib:
             assert not item.attrib['id'] in item_id_aid
             item_id_aid[item.attrib['id']] = item.attrib['achievement']
+        if item.tag == 'active':
+            active_item_ids.append(item.attrib['id'])
     else:
         assert item.tag in ['trinket', 'null']
 
@@ -90,19 +95,21 @@ for item in items_metadata:
 
         if item.attrib['id'] in item_id_aid:
             output += ',achievement_id:'+item_id_aid[item.attrib['id']]
-
+        if 'tags' in item.attrib:
+            output += f',tags:"{item.attrib["tags"]}"'
         output += '},'
         if prettyprint:
             output += "\n"
 output += "}\n"
 
-
+output += f"let active_item_ids = [" + ','.join(active_item_ids) + "]\n"
 
 
 output += """
 module.exports = {
     item_pool_data:item_pool_data,
-    item_config_data:item_config_data
+    item_config_data:item_config_data,
+    active_item_ids:active_item_ids
 }
 """
 

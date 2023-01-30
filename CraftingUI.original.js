@@ -171,7 +171,10 @@
     for(let quality in item_config_data_compressed){
         for(let i=0;i<item_config_data_compressed[quality].length;i++){
             let id = item_config_data_compressed[quality][i]
-            item_config_data[id]={quality:quality}
+            item_config_data[id]={
+                id:id,
+                quality:quality /* , offensive:true, nolostbr:true, ...*/
+            }
         }
     }
 
@@ -179,6 +182,19 @@
         let id = compressed.id_with_achievement[i]
         item_config_data[id].achievement_id = true
     }
+
+    for(let tag in compressed.id_with_tags){
+        for(let id of compressed.id_with_tags[tag]){
+            if(item_config_data[id]){
+                item_config_data[id][tag]=true
+            }
+        }
+    }
+
+    for(let active_id of compressed.active_item_ids){
+        item_config_data[active_id].is_active_item = true
+    }
+    
     /* 解压完毕 */
     
     function GetItemPoolData(item_pool_id){
@@ -193,6 +209,61 @@
     }
     function GetAchievementUnlocked(achievement_id){
         return achievement_id == undefined || achievement_id == false
+    }
+
+    let safe_is_daily_run = false
+    let safe_is_greed = false
+    let safe_challenge_id = undefined
+    let safe_current_stage = 1
+    let safe_has_keeper = false //id:14 or 33
+    let safe_has_lost = false // id:10 only
+    let safe_has_tlost = false 
+    let safe_game_start_seed = 0
+    let safe_has_c691 = false
+    let safe_has_t88 = false
+
+    function IsSafeToGenerage(item_config, flag){
+        //assert flag == 6 || flag == 1
+        if((flag & 1) != 0){
+            /* if(safe_challenge_id == 29) not support */
+            if(safe_challenge_id != undefined && item_config["nochallenge"])
+                return false;
+            if(safe_is_daily_run && item_config["nodaily"])
+                return false;
+            if(safe_is_greed && item_config["nogreed"])
+                return false;
+            if(safe_has_lost && item_config["nolostbr"])
+                return false;
+        }
+        if((flag & 4) != 0){
+            if((!safe_is_greed) && safe_current_stage >= 7 && item_config.id == 697)
+                return false;
+            if(safe_has_keeper && item_config["nokeeper"])
+                return false;
+            if(safe_has_tlost){
+                if(!item_config["offensive"])
+                    return false;
+                if(item_config.quality < 2){
+                    //do something...
+                    if(RNG_Next(safe_game_start_seed + item_config.id, 18) % 5 == 0){
+                        return false;
+                    }
+                }
+            }
+            if(safe_has_c691){
+                if(item_config.quality < 2)
+                    return false;
+                if(RNG_Next(safe_game_start_seed + item_config.id, 19) % 3 == 0){
+                    return false;
+                }
+            }
+            if(safe_has_t88 && item_config.is_active_item) /* 没有主动数据，所以不支持... */
+                return false
+        }
+        if((flag & 2) != 0){
+            // handle achievement, we dont do that
+        }
+        return true
     }
     
     //预先确定的配方
@@ -234,7 +305,7 @@
                     }else{
                         //继续下一个道具
                         output.push(recipe_predefine_list[i].output)
-                    }
+                    }    
                 }
             }
         }
@@ -291,6 +362,8 @@
         if(gameStartSeed == 0){
             throw "Error"
         }
+
+        safe_game_start_seed = gameStartSeed
 
         let currentSeed = gameStartSeed
 
@@ -367,7 +440,7 @@
                         }
                     }
                     let item_quality = 0 + item_config.quality /* there is not a zero, but a var from item_config, which is always zero when i'm testing */
-                    if(item_quality >= quality_min && item_quality <= quality_max){
+                    if(IsSafeToGenerage(item_config, 1) && item_quality >= quality_min && item_quality <= quality_max){
                         //be careful:the game use float instead of double, so js in not accurate!!!
                         let item_weight = item_pools[item_pool_i].weight * weight_list[weight_select_i].weight
                         all_weight += item_weight
@@ -397,7 +470,7 @@
 
             
             let item_config = GetItemConfig(selected)
-            if(item_config != undefined
+            if(item_config != undefined && IsSafeToGenerage(item_config, 6)
             ){
                 if(
                     item_config.achievement_id == undefined ||
@@ -516,6 +589,36 @@
         if(crafting_item_candidate_list_elems.length == 0){
             console.log("合成袋计算器未能成功加载，因为道具候选列表元素没有找到")
             return
+        }
+
+        let crafting_item_buttons = {
+            "crafting_item_greed":function(enable){safe_is_greed = enable},
+            "crafting_item_tlost":function(enable){safe_has_tlost=enable},
+            "crafting_item_daily_run":function(enable){safe_is_daily_run=enable},
+            "crafting_item_stage_more_7":function(enable){safe_current_stage = enable ? 8 : 1},
+            "crafting_item_keeper":function(enable){safe_has_keeper = enable},
+            "crafting_item_lost":function(enable){safe_has_lost = enable},
+            "crafting_item_c691":function(enable){safe_has_c691 = enable},
+            "crafting_item_t88":function(enable){safe_has_t88 = enable},
+        }
+        for(let btn_name in crafting_item_buttons){
+            let elem = root.find("#" + btn_name)
+            let callback = crafting_item_buttons[btn_name]
+            if(elem){
+                elem.on("click",function(){
+                    if(elem.hasClass("btn-success")){
+                        callback(false)
+                        elem.removeClass("btn-success")
+                        elem.addClass("btn-default")
+                    }else{
+                        callback(true)
+                        elem.addClass("btn-success")
+                        elem.removeClass("btn-default")
+                    }
+                    calculate()
+                    flush_ui()        
+                })
+            }
         }
 
         invalid_seed_tip[0].style.removeProperty('display')
